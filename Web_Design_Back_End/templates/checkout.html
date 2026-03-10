@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Loja 3D</title>
+</head>
+<body>
+
+<h1>Produtos disponíveis</h1>
+
+{% for produto in produtos %}
+
+<div style="border:1px solid black; padding:10px; margin:10px;">
+
+<h2>{{ produto.nome }}</h2>
+
+<p>{{ produto.descricao }}</p>
+
+<p>Preço: R$ {{ produto.preco }}</p>
+
+<p>Estoque: {{ produto.quantidade }}</p>
+
+<button>Comprar</button>
+
+</div>
+
+{% endfor %}
+
+</body>
+</html>
