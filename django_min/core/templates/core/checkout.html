@@ -1,0 +1,10 @@
+{% extends "core/base.html" %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+  <h1>Checkout preparado</h1>
+  <p>Sessão de pagamento: <strong>{{ session_id }}</strong></p>
+  <p>Próximo passo: integrar esta sessão com a API Stripe para redirecionamento real.</p>
+  <a href="{% url 'carrinho' %}">Voltar ao carrinho</a>
+{% endblock %}

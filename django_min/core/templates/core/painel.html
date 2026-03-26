@@ -1,0 +1,12 @@
+{% extends "core/base.html" %}
+
+{% block title %}Painel{% endblock %}
+
+{% block content %}
+  <h1>Painel do usuário</h1>
+  <p>Bem-vindo, {{ user.username }}.</p>
+  <p>
+    <a href="{% url 'catalogo' %}">Ver catálogo</a> |
+    <a href="{% url 'carrinho' %}">Ver carrinho</a>
+  </p>
+{% endblock %}
