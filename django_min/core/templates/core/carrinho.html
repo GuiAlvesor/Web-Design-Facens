@@ -1,0 +1,40 @@
+{% extends "core/base.html" %}
+
+{% block title %}Carrinho{% endblock %}
+
+{% block content %}
+  <h1>Meu carrinho</h1>
+
+  {% if not carrinho %}
+    <p>Carrinho indisponível até a aplicação das migrations.</p>
+  {% elif carrinho.itens.all %}
+    <ul>
+      {% for item in carrinho.itens.all %}
+        <li style="margin-bottom: 12px;">
+          <strong>{{ item.item_catalogo.nome }}</strong><br>
+          Subtotal: R$ {{ item.subtotal }}
+
+          <form method="post" action="{% url 'atualizar_quantidade_item' item.item_catalogo.id %}">
+            {% csrf_token %}
+            <label>Quantidade:</label>
+            <input type="number" name="quantidade" min="1" max="{{ item.item_catalogo.estoque }}" value="{{ item.quantidade }}">
+            <button type="submit">Atualizar</button>
+          </form>
+
+          <form method="post" action="{% url 'remover_do_carrinho' item.item_catalogo.id %}">
+            {% csrf_token %}
+            <button type="submit">Remover</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <p><strong>Total:</strong> R$ {{ carrinho.total }}</p>
+    <form method="post" action="{% url 'iniciar_checkout' %}">
+      {% csrf_token %}
+      <button type="submit">Ir para checkout</button>
+    </form>
+  {% else %}
+    <p>Seu carrinho está vazio.</p>
+  {% endif %}
+{% endblock %}

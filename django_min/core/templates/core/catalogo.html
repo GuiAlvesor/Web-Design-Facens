@@ -1,0 +1,40 @@
+{% extends "core/base.html" %}
+
+{% block title %}Catálogo{% endblock %}
+
+{% block content %}
+  <h1>Catálogo</h1>
+
+  {% if itens %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+      {% for item in itens %}
+        <article style="border:1px solid #ddd;border-radius:8px;padding:12px;">
+          <h3>{{ item.nome }}</h3>
+          <p><small>{{ item.tipo.nome }}</small></p>
+          <p>{{ item.descricao|default:"Sem descrição" }}</p>
+          <p><strong>R$ {{ item.preco }}</strong></p>
+          <p>Estoque: {{ item.estoque }}</p>
+
+          <form method="post" action="{% url 'adicionar_ao_carrinho' item.id %}">
+            {% csrf_token %}
+            <label>Qtd:</label>
+            <input type="number" name="quantidade" min="1" max="{{ item.estoque }}" value="1">
+            <button type="submit">Inserir no carrinho</button>
+          </form>
+
+          {% if user.is_staff %}
+            <hr>
+            <form method="post" action="{% url 'ajustar_estoque' item.id %}">
+              {% csrf_token %}
+              <label>Ajuste de estoque:</label>
+              <input type="number" name="quantidade" value="1">
+              <button type="submit">Atualizar estoque</button>
+            </form>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Nenhum item ativo cadastrado no catálogo.</p>
+  {% endif %}
+{% endblock %}
