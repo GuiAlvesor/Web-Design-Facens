@@ -10,6 +10,8 @@
     <a href="{% url 'home' %}">Home</a>
     {% if user.is_authenticated %}
       <a href="{% url 'painel' %}">Painel</a>
+      <a href="{% url 'catalogo' %}">Catálogo</a>
+      <a href="{% url 'carrinho' %}">Carrinho</a>
       <form action="{% url 'logout' %}" method="post" style="display:inline;">
         {% csrf_token %}
         <button type="submit">Sair</button>

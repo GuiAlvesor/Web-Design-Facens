@@ -1,0 +1,24 @@
+{% extends "core/base.html" %}
+
+{% block title %}Carrinho{% endblock %}
+
+{% block content %}
+  <h1>Meu carrinho</h1>
+
+  {% if carrinho.itens.all %}
+    <ul>
+      {% for item in carrinho.itens.all %}
+        <li>
+          {{ item.item_catalogo.nome }} - Qtd: {{ item.quantidade }} - Subtotal: R$ {{ item.subtotal }}
+          <form method="post" action="{% url 'remover_do_carrinho' item.item_catalogo.id %}">
+            {% csrf_token %}
+            <button type="submit">Remover</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+    <p><strong>Total:</strong> R$ {{ carrinho.total }}</p>
+  {% else %}
+    <p>Seu carrinho está vazio.</p>
+  {% endif %}
+{% endblock %}
