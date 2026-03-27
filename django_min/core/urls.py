@@ -14,6 +14,7 @@ from .views import (
     registro,
     remover_do_carrinho,
     sair,
+    stripe_webhook,
 )
 
 urlpatterns = [
@@ -28,6 +29,7 @@ urlpatterns = [
     path('carrinho/remover/<int:item_id>/', remover_do_carrinho, name='remover_do_carrinho'),
     path('carrinho/checkout/', iniciar_checkout, name='iniciar_checkout'),
     path('pagamentos/checkout/<str:session_id>/', checkout_placeholder, name='checkout_placeholder'),
+    path('webhooks/stripe/', stripe_webhook, name='stripe_webhook'),
     path('estoque/ajustar/<int:item_id>/', ajustar_estoque, name='ajustar_estoque'),
     path('logout/', sair, name='logout'),
 ]

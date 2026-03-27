@@ -91,6 +91,13 @@ class Pedido(models.Model):
 
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="itens")
+    item_catalogo = models.ForeignKey(
+        ItemCatalogo,
+        on_delete=models.PROTECT,
+        related_name="itens_em_pedidos",
+        null=True,
+        blank=True,
+    )
     nome_item = models.CharField(max_length=120)
     preco_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     quantidade = models.PositiveIntegerField(validators=[MinValueValidator(1)])

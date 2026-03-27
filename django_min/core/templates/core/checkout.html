@@ -3,8 +3,11 @@
 {% block title %}Checkout{% endblock %}
 
 {% block content %}
-  <h1>Checkout preparado</h1>
-  <p>Sessão de pagamento: <strong>{{ session_id }}</strong></p>
-  <p>Próximo passo: integrar esta sessão com a API Stripe para redirecionamento real.</p>
-  <a href="{% url 'carrinho' %}">Voltar ao carrinho</a>
+  <section class="card">
+    <h1 style="margin-top:0;">Checkout iniciado</h1>
+    <p>Seu pagamento foi iniciado no Stripe com segurança.</p>
+    <p class="muted">Session ID: <strong>{{ session_id }}</strong></p>
+    <p>Após a confirmação do Stripe, o webhook atualizará automaticamente o status do pedido.</p>
+    <a class="btn" href="{% url 'painel' %}">Ir para o painel</a>
+  </section>
 {% endblock %}
