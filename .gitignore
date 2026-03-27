@@ -21,4 +21,5 @@ atlassian-ide-plugin.xml
 /django_min/public/media/
 
 # Project database
-*.db
+*.sqlite3
+django_min/db.sqlite3
