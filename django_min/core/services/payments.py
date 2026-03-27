@@ -12,7 +12,7 @@ from django.conf import settings
 from django.db import transaction
 
 from core.models import ItemCatalogo, ItemPedido, Pagamento, Pedido
-from core.services.cart import CartError, CartService
+from core.services.cart import CartService, CartError
 
 
 @dataclass
@@ -156,7 +156,6 @@ class CheckoutService:
 
             ItemPedido.objects.create(
                 pedido=pedido,
-                item_catalogo=item_catalogo,
                 nome_item=item_catalogo.nome,
                 preco_unitario=item_catalogo.preco,
                 quantidade=item_carrinho.quantidade,
