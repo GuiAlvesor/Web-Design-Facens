@@ -3,38 +3,49 @@
 {% block title %}Catálogo{% endblock %}
 
 {% block content %}
-  <h1>Catálogo</h1>
+  <section class="card" style="margin-bottom:16px;">
+    <h1 style="margin-top:0;">Catálogo de produtos</h1>
+    <p class="muted">Escolha seus itens e adicione ao carrinho. O carrinho é salvo por usuário para continuar de onde parou.</p>
+  </section>
 
   {% if itens %}
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+    <div class="cards">
       {% for item in itens %}
-        <article style="border:1px solid #ddd;border-radius:8px;padding:12px;">
-          <h3>{{ item.nome }}</h3>
-          <p><small>{{ item.tipo.nome }}</small></p>
-          <p>{{ item.descricao|default:"Sem descrição" }}</p>
-          <p><strong>R$ {{ item.preco }}</strong></p>
-          <p>Estoque: {{ item.estoque }}</p>
+        <article class="card">
+          <div class="row" style="justify-content:space-between;">
+            <h3 style="margin:0;">{{ item.nome }}</h3>
+            <span class="badge">{{ item.tipo.nome }}</span>
+          </div>
+          <p class="muted" style="min-height:42px;">{{ item.descricao|default:"Sem descrição" }}</p>
+          <p style="font-size:22px;margin:8px 0 4px;"><strong>R$ {{ item.preco }}</strong></p>
+          <p class="muted" style="margin-top:0;">Estoque disponível: <strong>{{ item.estoque }}</strong></p>
 
           <form method="post" action="{% url 'adicionar_ao_carrinho' item.id %}">
             {% csrf_token %}
-            <label>Qtd:</label>
-            <input type="number" name="quantidade" min="1" max="{{ item.estoque }}" value="1">
-            <button type="submit">Inserir no carrinho</button>
+            <div class="field">
+              <label for="qtd-{{ item.id }}">Quantidade</label>
+              <input id="qtd-{{ item.id }}" type="number" name="quantidade" min="1" max="{{ item.estoque }}" value="1">
+            </div>
+            <button type="submit">Adicionar ao carrinho</button>
           </form>
 
           {% if user.is_staff %}
-            <hr>
+            <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
             <form method="post" action="{% url 'ajustar_estoque' item.id %}">
               {% csrf_token %}
-              <label>Ajuste de estoque:</label>
-              <input type="number" name="quantidade" value="1">
-              <button type="submit">Atualizar estoque</button>
+              <div class="field">
+                <label for="ajuste-{{ item.id }}">Ajuste de estoque (+/-)</label>
+                <input id="ajuste-{{ item.id }}" type="number" name="quantidade" value="1">
+              </div>
+              <button class="btn-secondary" type="submit">Atualizar estoque</button>
             </form>
           {% endif %}
         </article>
       {% endfor %}
     </div>
   {% else %}
-    <p>Nenhum item ativo cadastrado no catálogo.</p>
+    <section class="card">
+      <p>Nenhum item ativo cadastrado no catálogo.</p>
+    </section>
   {% endif %}
 {% endblock %}
