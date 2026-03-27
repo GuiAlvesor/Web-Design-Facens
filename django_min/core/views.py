@@ -1,14 +1,19 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.utils import OperationalError, ProgrammingError
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .forms import LoginUsuarioForm, RegistroUsuarioForm
-from .models import ItemCatalogo
+from .models import ItemCatalogo, Pagamento
 from .services import CartService, CheckoutService, catalog_tables_ready
 from .services.cart import CartError, StockError
+from .services.payments import StripeWebhookVerifier
 
 
 @require_http_methods(["GET"])
@@ -132,7 +137,7 @@ def remover_do_carrinho(request, item_id):
 def iniciar_checkout(request):
     try:
         pagamento = CheckoutService.iniciar_checkout(request.user)
-        messages.success(request, "Checkout preparado com sucesso.")
+        messages.success(request, "Checkout criado com sucesso. Você será redirecionado para o Stripe.")
         return redirect(pagamento.metadata.get("checkout_url", "carrinho"))
     except (CartError, OperationalError, ProgrammingError) as exc:
         messages.error(request, str(exc))
@@ -143,6 +148,38 @@ def iniciar_checkout(request):
 @require_http_methods(["GET"])
 def checkout_placeholder(request, session_id):
     return render(request, "core/checkout.html", {"session_id": session_id})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def stripe_webhook(request):
+    payload = request.body
+    signature = request.headers.get("Stripe-Signature", "")
+
+    if not StripeWebhookVerifier.verify(payload, signature):
+        return JsonResponse({"error": "Assinatura inválida"}, status=400)
+
+    try:
+        event = json.loads(payload.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Payload inválido"}, status=400)
+
+    event_type = event.get("type")
+    obj = event.get("data", {}).get("object", {})
+    checkout_id = obj.get("id")
+
+    if not checkout_id:
+        return HttpResponse(status=200)
+
+    try:
+        if event_type == "checkout.session.completed":
+            CheckoutService.confirmar_pagamento(checkout_id)
+        elif event_type in {"checkout.session.expired", "checkout.session.async_payment_failed"}:
+            CheckoutService.cancelar_pagamento(checkout_id)
+    except Pagamento.DoesNotExist:
+        return HttpResponse(status=200)
+
+    return HttpResponse(status=200)
 
 
 @login_required

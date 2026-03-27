@@ -1,8 +1,12 @@
+import hashlib
+import hmac
+import json
+import time
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.db.utils import OperationalError
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from .models import ItemCatalogo, ItemCarrinho, Pagamento, Pedido, TipoItemCatalogo
@@ -42,6 +46,16 @@ class AutenticacaoTests(TestCase):
 
         response_logout = self.client.post(reverse("logout"))
         self.assertRedirects(response_logout, reverse("home"))
+
+
+class GatewayFalso(PaymentGateway):
+    provider_name = "stripe"
+
+    def criar_checkout(self, pedido):
+        return CheckoutSession(
+            id=f"cs_test_{pedido.id}",
+            url_pagamento=f"https://checkout.stripe.test/{pedido.id}",
+        )
 
 
 class CarrinhoTests(TestCase):
