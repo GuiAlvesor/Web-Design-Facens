@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Carrinho, ItemCarrinho, ItemCatalogo, TipoItemCatalogo
+from .models import (
+    Carrinho,
+    ItemCarrinho,
+    ItemCatalogo,
+    ItemPedido,
+    Pagamento,
+    Pedido,
+    TipoItemCatalogo,
+)
 
 
 @admin.register(TipoItemCatalogo)
@@ -25,3 +33,22 @@ class ItemCarrinhoInline(admin.TabularInline):
 class CarrinhoAdmin(admin.ModelAdmin):
     list_display = ("usuario", "criado_em", "atualizado_em")
     inlines = [ItemCarrinhoInline]
+
+
+class ItemPedidoInline(admin.TabularInline):
+    model = ItemPedido
+    extra = 0
+
+
+@admin.register(Pedido)
+class PedidoAdmin(admin.ModelAdmin):
+    list_display = ("id", "usuario", "status", "valor_total", "criado_em")
+    list_filter = ("status",)
+    inlines = [ItemPedidoInline]
+
+
+@admin.register(Pagamento)
+class PagamentoAdmin(admin.ModelAdmin):
+    list_display = ("checkout_id", "pedido", "provedor", "status", "valor", "atualizado_em")
+    list_filter = ("provedor", "status")
+    search_fields = ("checkout_id",)

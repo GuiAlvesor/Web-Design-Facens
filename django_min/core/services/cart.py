@@ -24,8 +24,6 @@ class CartService:
             raise CartError("Quantidade deve ser maior que zero.")
 
         item_catalogo = ItemCatalogo.objects.select_for_update().get(pk=item_id, ativo=True)
-        if item_catalogo.estoque < quantidade:
-            raise StockError("Estoque insuficiente para adicionar o item ao carrinho.")
 
         carrinho = CartService.obter_carrinho(usuario)
         item_carrinho, criado = ItemCarrinho.objects.select_for_update().get_or_create(
@@ -34,13 +32,33 @@ class CartService:
             defaults={"quantidade": quantidade},
         )
 
+        quantidade_final = quantidade if criado else item_carrinho.quantidade + quantidade
+        if item_catalogo.estoque < quantidade_final:
+            raise StockError("Estoque insuficiente para atualizar a quantidade no carrinho.")
+
         if not criado:
-            nova_quantidade = item_carrinho.quantidade + quantidade
-            if item_catalogo.estoque < nova_quantidade:
-                raise StockError("Estoque insuficiente para atualizar a quantidade no carrinho.")
-            item_carrinho.quantidade = nova_quantidade
+            item_carrinho.quantidade = quantidade_final
             item_carrinho.save(update_fields=["quantidade", "atualizado_em"])
 
+        return item_carrinho
+
+    @staticmethod
+    @transaction.atomic
+    def atualizar_quantidade(usuario, item_id, quantidade):
+        if quantidade < 1:
+            raise CartError("Quantidade deve ser maior que zero.")
+
+        carrinho = CartService.obter_carrinho(usuario)
+        item_carrinho = ItemCarrinho.objects.select_for_update().select_related("item_catalogo").get(
+            carrinho=carrinho,
+            item_catalogo_id=item_id,
+        )
+
+        if item_carrinho.item_catalogo.estoque < quantidade:
+            raise StockError("Estoque insuficiente para a quantidade informada.")
+
+        item_carrinho.quantidade = quantidade
+        item_carrinho.save(update_fields=["quantidade", "atualizado_em"])
         return item_carrinho
 
     @staticmethod
