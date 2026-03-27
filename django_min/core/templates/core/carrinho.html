@@ -3,38 +3,54 @@
 {% block title %}Carrinho{% endblock %}
 
 {% block content %}
-  <h1>Meu carrinho</h1>
+  <section class="card" style="margin-bottom:16px;">
+    <h1 style="margin-top:0;">Meu carrinho</h1>
+    <p class="muted">Itens vinculados ao seu usuário com persistência entre sessões.</p>
+  </section>
 
   {% if not carrinho %}
-    <p>Carrinho indisponível até a aplicação das migrations.</p>
+    <section class="card">
+      <p>Carrinho indisponível até a aplicação das migrations.</p>
+    </section>
   {% elif carrinho.itens.all %}
-    <ul>
+    <div class="cards" style="grid-template-columns: 1fr;">
       {% for item in carrinho.itens.all %}
-        <li style="margin-bottom: 12px;">
-          <strong>{{ item.item_catalogo.nome }}</strong><br>
-          Subtotal: R$ {{ item.subtotal }}
+        <article class="card">
+          <div class="row" style="justify-content:space-between;">
+            <h3 style="margin:0;">{{ item.item_catalogo.nome }}</h3>
+            <span class="badge">R$ {{ item.subtotal }}</span>
+          </div>
+          <p class="muted">Preço unitário: R$ {{ item.item_catalogo.preco }} · Estoque atual: {{ item.item_catalogo.estoque }}</p>
 
-          <form method="post" action="{% url 'atualizar_quantidade_item' item.item_catalogo.id %}">
-            {% csrf_token %}
-            <label>Quantidade:</label>
-            <input type="number" name="quantidade" min="1" max="{{ item.item_catalogo.estoque }}" value="{{ item.quantidade }}">
-            <button type="submit">Atualizar</button>
-          </form>
+          <div class="row">
+            <form method="post" action="{% url 'atualizar_quantidade_item' item.item_catalogo.id %}">
+              {% csrf_token %}
+              <div class="row">
+                <label for="qtd-item-{{ item.id }}">Quantidade</label>
+                <input id="qtd-item-{{ item.id }}" type="number" name="quantidade" min="1" max="{{ item.item_catalogo.estoque }}" value="{{ item.quantidade }}" style="max-width:84px;">
+                <button class="btn-secondary" type="submit">Atualizar</button>
+              </div>
+            </form>
 
-          <form method="post" action="{% url 'remover_do_carrinho' item.item_catalogo.id %}">
-            {% csrf_token %}
-            <button type="submit">Remover</button>
-          </form>
-        </li>
+            <form method="post" action="{% url 'remover_do_carrinho' item.item_catalogo.id %}">
+              {% csrf_token %}
+              <button class="btn-danger" type="submit">Remover</button>
+            </form>
+          </div>
+        </article>
       {% endfor %}
-    </ul>
+    </div>
 
-    <p><strong>Total:</strong> R$ {{ carrinho.total }}</p>
-    <form method="post" action="{% url 'iniciar_checkout' %}">
-      {% csrf_token %}
-      <button type="submit">Ir para checkout</button>
-    </form>
+    <section class="summary">
+      <p style="font-size:20px;margin:0 0 10px;"><strong>Total: R$ {{ carrinho.total }}</strong></p>
+      <form method="post" action="{% url 'iniciar_checkout' %}">
+        {% csrf_token %}
+        <button type="submit">Finalizar compra</button>
+      </form>
+    </section>
   {% else %}
-    <p>Seu carrinho está vazio.</p>
+    <section class="card">
+      <p>Seu carrinho está vazio.</p>
+    </section>
   {% endif %}
 {% endblock %}
