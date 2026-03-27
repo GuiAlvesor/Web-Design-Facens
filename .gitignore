@@ -1,0 +1,24 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+
+# OS
+.DS_Store
+
+# Python
+*.pyc
+*.pyo
+
+# Common IDEs
+*.swp
+.idea/
+.buildpath
+.project
+.settings
+atlassian-ide-plugin.xml
+
+# Project
+/django_min/local_settings.py
+/django_min/public/static/
+/django_min/public/media/
+
+# Project database
+*.db
