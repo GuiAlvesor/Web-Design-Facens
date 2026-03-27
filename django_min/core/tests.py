@@ -6,6 +6,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from .models import ItemCatalogo, ItemCarrinho, Pagamento, Pedido, TipoItemCatalogo
+from .services.payments import PaymentGateway
 
 
 class AutenticacaoTests(TestCase):
@@ -94,7 +95,7 @@ class CarrinhoTests(TestCase):
         self.assertRedirects(response, reverse("carrinho"))
         self.assertFalse(ItemCarrinho.objects.filter(item_catalogo=self.item).exists())
 
-    def test_iniciar_checkout_cria_pedido_e_pagamento(self):
+    def test_iniciar_checkout_cria_pedido_pagamento_e_reduz_estoque(self):
         self.client.post(
             reverse("adicionar_ao_carrinho", kwargs={"item_id": self.item.id}),
             {"quantidade": 2},
@@ -105,6 +106,31 @@ class CarrinhoTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Pedido.objects.exists())
         self.assertTrue(Pagamento.objects.exists())
+
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.estoque, 3)
+        self.assertFalse(ItemCarrinho.objects.filter(item_catalogo=self.item).exists())
+
+    def test_checkout_falha_e_realiza_rollback_de_estoque(self):
+        self.client.post(
+            reverse("adicionar_ao_carrinho", kwargs={"item_id": self.item.id}),
+            {"quantidade": 2},
+        )
+
+        class GatewayComFalha(PaymentGateway):
+            def criar_checkout(self, pedido):
+                raise RuntimeError("Falha simulada no gateway")
+
+        with self.assertRaises(RuntimeError):
+            from .services.payments import CheckoutService
+
+            CheckoutService.iniciar_checkout(self.usuario, gateway=GatewayComFalha())
+
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.estoque, 5)
+        self.assertEqual(ItemCarrinho.objects.filter(item_catalogo=self.item).count(), 1)
+        self.assertFalse(Pedido.objects.exists())
+        self.assertFalse(Pagamento.objects.exists())
 
 
 class InicializacaoBancoTests(TestCase):
