@@ -2,33 +2,31 @@
 
 ## Branches oficiais
 
-O projeto adota um fluxo enxuto com duas branches:
+O projeto adota um fluxo em três etapas com as branches:
 
-- `main` (estável)
-- `develop` (desenvolvimento)
+- `features` (entrada de conteúdo novo)
+- `develop` (homologação/consolidação)
+- `main` (estável/produção)
 
 ## Política obrigatória
 
-- Commits de novas funcionalidades, correções e refactors devem ser feitos em `develop`.
+- Commits de novas funcionalidades, correções e refactors devem ser feitos em `features`.
+- A `develop` deve receber mudanças validadas via merge/PR aprovado de `features`.
 - A `main` deve receber código somente via merge/PR aprovado de `develop`.
-- O histórico de evolução do projeto deve permanecer em `develop`.
 
 ## Processo de entrega
 
-1. Atualize `develop`.
-2. Implemente e commite em `develop`.
-3. Abra PR `develop` -> `main` com descrição técnica e testes.
-4. Faça merge em `main` apenas após revisão/aprovação.
+1. Atualize `features`.
+2. Implemente e commite em `features`.
+3. Valide e abra PR `features` -> `develop` com descrição técnica e testes.
+4. Após aprovação em `develop`, abra PR `develop` -> `main`.
+5. Faça merge em `main` apenas após revisão/aprovação final.
 
 
-## Verificação de conformidade
+## Documentação por branch
 
-Antes de abrir PR, execute:
+- `FEATURES.md`
+- `DEVELOP.md`
+- `MAIN.md`
 
-```bash
-./scripts/verify_branch_policy.sh
-```
-
-O script valida:
-- existência de `main` e `develop`;
-- se `main` está contida em `develop` (histórico centralizado em desenvolvimento).
+Fluxo obrigatório: `features` -> `develop` -> `main`.
