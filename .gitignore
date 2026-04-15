@@ -23,3 +23,6 @@ atlassian-ide-plugin.xml
 # Project database
 *.sqlite3
 django_min/db.sqlite3
+
+# Passwords and Keys
+*.env
