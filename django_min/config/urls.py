@@ -21,3 +21,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
 ]
+
+# urls.py
+from django.http import HttpResponse
+
+def health(request):
+    return HttpResponse("ok")
