@@ -47,7 +47,7 @@ class AutenticacaoTests(TestCase):
         response_logout = self.client.post(reverse("logout"))
         self.assertRedirects(response_logout, reverse("home"))
 
-
+'''
 class GatewayFalso(PaymentGateway):
     provider_name = "stripe"
 
@@ -56,7 +56,7 @@ class GatewayFalso(PaymentGateway):
             id=f"cs_test_{pedido.id}",
             url_pagamento=f"https://checkout.stripe.test/{pedido.id}",
         )
-
+'''
 
 class CarrinhoTests(TestCase):
     def setUp(self):
