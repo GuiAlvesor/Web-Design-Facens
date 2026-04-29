@@ -206,3 +206,6 @@ def sair(request):
     logout(request)
     messages.info(request, "Você saiu da conta.")
     return redirect("home")
+
+def health(request):
+    return HttpResponse("ok", status=200)
