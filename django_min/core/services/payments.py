@@ -47,8 +47,8 @@ class StripeGateway(PaymentGateway):
         if not self.secret_key:
             raise PaymentGatewayError("STRIPE_SECRET_KEY não configurada.")
 
-        success_url = f"{settings.SITE_URL}/pagamentos/checkout/sucesso?session_id={{CHECKOUT_SESSION_ID}}"
-        cancel_url = f"{settings.SITE_URL}/carrinho/"
+        success_url = f"{settings.SITE_URL}/pedido-concluido?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{settings.SITE_URL}/carrinho"
 
         payload = {
             "mode": "payment",

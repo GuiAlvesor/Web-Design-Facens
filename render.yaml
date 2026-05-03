@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: lume3d-api
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "cd django_min && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lume3d-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      # URL do Vercel — preencher após criar o projeto no Vercel
+      # Exemplo: https://lume3d.vercel.app
+      - key: FRONTEND_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # URL deste serviço no Render — para o Stripe redirecionar corretamente
+      # Exemplo: https://lume3d-api.onrender.com
+      - key: SITE_URL
+        sync: false
+
+databases:
+  - name: lume3d-db
+    databaseName: lume3d
+    user: lume3d
