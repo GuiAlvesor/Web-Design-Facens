@@ -13,6 +13,7 @@ from .views import (
     api_limpar_carrinho,
     api_pedidos,
     api_checkout,
+    api_change_password,
     stripe_webhook,
     health,
 )
@@ -26,6 +27,7 @@ urlpatterns = [
     path("api/login/", api_login),
     path("api/signup/", api_signup),
     path("api/logout/", api_logout),
+    path("api/change-password/", api_change_password),
 
     # Catálogo
     path("api/catalogo/", api_catalogo),

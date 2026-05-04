@@ -136,6 +136,32 @@ def api_logout(request):
     logout(request)
     return JsonResponse({"detail": "Logout realizado."})
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_change_password(request):
+    err = _user_required(request)
+    if err:
+        return err
+
+    body = _json_body(request)
+    senha_atual = body.get("current_password", "")
+    nova_senha = body.get("new_password", "")
+
+    if not senha_atual or not nova_senha:
+        return JsonResponse({"error": "Senha atual e nova senha são obrigatórias."}, status=400)
+
+    if len(nova_senha) < 6:
+        return JsonResponse({"error": "A nova senha deve ter pelo menos 6 caracteres."}, status=400)
+
+    user = authenticate(request, username=request.user.username, password=senha_atual)
+    if user is None:
+        return JsonResponse({"error": "Senha atual incorreta."}, status=401)
+
+    user.set_password(nova_senha)
+    user.save()
+    login(request, user)  # mantém a sessão ativa após trocar a senha
+    return JsonResponse({"detail": "Senha alterada com sucesso."})
+
 
 # ─── CATÁLOGO ─────────────────────────────────────────────────────────────────
 
