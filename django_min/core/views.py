@@ -1,5 +1,7 @@
 import json
 
+from decimal import Decimal
+
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.http import JsonResponse
@@ -343,8 +345,18 @@ def api_checkout(request):
     if err:
         return err
 
+    body = _json_body(request)
+    frete_nome = body.get("frete_nome", None)
+    frete_valor = Decimal(str(body.get("frete_valor", 0)))
+    desconto = Decimal(str(body.get("desconto", 0)))
+
     try:
-        pagamento = CheckoutService.iniciar_checkout(request.user)
+        pagamento = CheckoutService.iniciar_checkout(
+            request.user,
+            frete_nome=frete_nome,
+            frete_valor=frete_valor,
+            desconto=desconto,
+        )
         checkout_url = pagamento.metadata.get("checkout_url", "")
         return JsonResponse({
             "checkout_url": checkout_url,

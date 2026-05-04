@@ -43,7 +43,7 @@ class StripeGateway(PaymentGateway):
         self.secret_key = settings.STRIPE_SECRET_KEY
         self.api_base = settings.STRIPE_API_BASE.rstrip("/")
 
-    def criar_checkout(self, pedido: Pedido) -> CheckoutSession:
+    def criar_checkout(self, pedido: Pedido, frete_nome=None, frete_valor=Decimal("0.00"), desconto=Decimal("0.00")) -> CheckoutSession:
         if not self.secret_key:
             raise PaymentGatewayError("STRIPE_SECRET_KEY não configurada.")
 
@@ -58,11 +58,28 @@ class StripeGateway(PaymentGateway):
             "client_reference_id": str(pedido.usuario_id),
         }
 
-        for index, item in enumerate(pedido.itens.select_related("item_catalogo")):
+        index = 0
+        for item in pedido.itens.select_related("item_catalogo"):
             payload[f"line_items[{index}][quantity]"] = str(item.quantidade)
             payload[f"line_items[{index}][price_data][currency]"] = "brl"
             payload[f"line_items[{index}][price_data][unit_amount]"] = str(_decimal_to_cents(item.preco_unitario))
             payload[f"line_items[{index}][price_data][product_data][name]"] = item.nome_item
+            index += 1
+
+        if frete_valor > 0:
+            nome_frete = frete_nome or "Frete"
+            payload[f"line_items[{index}][quantity]"] = "1"
+            payload[f"line_items[{index}][price_data][currency]"] = "brl"
+            payload[f"line_items[{index}][price_data][unit_amount]"] = str(_decimal_to_cents(frete_valor))
+            payload[f"line_items[{index}][price_data][product_data][name]"] = nome_frete
+            index += 1
+
+        if desconto > 0:
+            payload[f"line_items[{index}][quantity]"] = "1"
+            payload[f"line_items[{index}][price_data][currency]"] = "brl"
+            payload[f"line_items[{index}][price_data][unit_amount]"] = str(-_decimal_to_cents(desconto))
+            payload[f"line_items[{index}][price_data][product_data][name]"] = "Desconto"
+            index += 1
 
         body = urlencode(payload).encode("utf-8")
         request = Request(
@@ -78,7 +95,7 @@ class StripeGateway(PaymentGateway):
         try:
             with urlopen(request, timeout=12) as response:
                 content = response.read().decode("utf-8")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise PaymentGatewayError("Erro ao criar sessão de checkout no Stripe.") from exc
 
         data = json.loads(content)
@@ -125,7 +142,7 @@ class StripeWebhookVerifier:
 class CheckoutService:
     @staticmethod
     @transaction.atomic
-    def iniciar_checkout(usuario, gateway: PaymentGateway | None = None) -> Pagamento:
+    def iniciar_checkout(usuario, gateway: PaymentGateway | None = None, frete_nome=None, frete_valor=Decimal("0.00"), desconto=Decimal("0.00")) -> Pagamento:
         gateway = gateway or StripeGateway()
 
         carrinho = CartService.obter_carrinho(usuario)
@@ -139,7 +156,8 @@ class CheckoutService:
             for item in ItemCatalogo.objects.select_for_update().filter(id__in=item_ids, ativo=True)
         }
 
-        pedido = Pedido.objects.create(usuario=usuario, valor_total=carrinho.total)
+        valor_total = carrinho.total + frete_valor - desconto
+        pedido = Pedido.objects.create(usuario=usuario, valor_total=max(valor_total, Decimal("0.00")))
 
         for item_carrinho in itens_carrinho:
             item_catalogo = itens_catalogo.get(item_carrinho.item_catalogo_id)
@@ -162,7 +180,7 @@ class CheckoutService:
             )
 
         try:
-            checkout = gateway.criar_checkout(pedido)
+            checkout = gateway.criar_checkout(pedido, frete_nome=frete_nome, frete_valor=frete_valor, desconto=desconto)
         except PaymentGatewayError as exc:
             raise CartError(str(exc)) from exc
 
