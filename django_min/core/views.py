@@ -10,6 +10,7 @@ from .models import ItemCatalogo, Pagamento, Pedido, ItemPedido
 from .services import CartService, CheckoutService, catalog_tables_ready
 from .services.cart import CartError, StockError
 from .services.payments import StripeWebhookVerifier
+from .services.email import enviar_email_boas_vindas
 
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
@@ -116,6 +117,10 @@ def api_signup(request):
         last_name=" ".join(name.split()[1:]) if len(name.split()) > 1 else "",
     )
     login(request, user)
+    enviar_email_boas_vindas(
+        nome=user.first_name,
+        email_destino=user.email,
+    )
     return JsonResponse({
         "user": {
             "id": user.id,
