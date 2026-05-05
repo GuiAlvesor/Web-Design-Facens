@@ -13,6 +13,7 @@ from .views import (
     api_limpar_carrinho,
     api_pedidos,
     api_checkout,
+    api_checkout_status,
     api_change_password,
     stripe_webhook,
     health,
@@ -44,6 +45,7 @@ urlpatterns = [
 
     # Checkout
     path("api/checkout/", api_checkout),
+    path("api/checkout/status/", api_checkout_status),
 
     # Stripe webhook
     path("webhooks/stripe/", stripe_webhook),
